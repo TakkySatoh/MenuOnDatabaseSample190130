@@ -58,8 +58,11 @@ public class ScrollListActivity extends AppCompatActivity {
 //        LinearLayoutManagerのインスタンスを生成し、RecyclerViewインスタンスのレイアウトをLinearLayoutへ設定
         LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
         lvMenu.setLayoutManager(layout);
+
 //        定食メニューのリストデータを生成
-        List<Map<String, Object>> menuList = createTeishokuList();
+//        List<Map<String, Object>> menuList = createTeishokuList();
+        CSVReader parser = new CSVReader();
+        List<Map<String, Object>> menuList = parser.setMenuList(getApplicationContext(),"T");
 //        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
 //        メニューリスト生成用アダプタは内部クラスとして別途定義
         final RecyclerListAdapter adapter = new RecyclerListAdapter(menuList);
@@ -277,8 +280,7 @@ public class ScrollListActivity extends AppCompatActivity {
 //            取得したデータに格納されている項目中、"name"タグの付与されたString文字列、"price"タグの付与されたint型数値を抽出
 //            int型数値はString型文字列へ変換する (画面表示のため)
             String menuName = (String) item.get("name");
-            int menuPrice = (Integer) item.get("price");
-            String menuPriceStr = String.valueOf(menuPrice);
+            String menuPriceStr = (String) item.get("price");
 //            ビューホルダに対し、上記文字列を各表示先画面部品へ表示する設定を実施
             holder._tvMenuName.setText(menuName);
             holder._tvMenuPrice.setText(menuPriceStr);

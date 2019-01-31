@@ -3,8 +3,6 @@ package com.websarva.wings.android.menuondatabasesample;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -29,7 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         sb.append("_id integer primary key,");
         sb.append("category text,");
         sb.append("name text,");
-        sb.append("price int");
+        sb.append("price int,");
         sb.append("desc text");
         sb.append(");");
         String sql = sb.toString();
@@ -41,9 +39,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         sb.append("_id integer primary key,");
         sb.append("category text,");
         sb.append("name text,");
-        sb.append("price int");
+        sb.append("price int,");
         sb.append("desc text");
         sb.append(");");
+        sql = sb.toString();
 //        SQLを実行
         db.execSQL(sql);
     }
