@@ -65,54 +65,8 @@ public class ScrollListActivity extends AppCompatActivity {
 
 //        定食メニューのリストデータを生成
 //        CSVファイルに格納されているデータを読み出し(CSVReaderクラスに手順記述)、メニュー種別(引数に設定)に沿って、Listに格納
-        CSVReader parser = new CSVReader();
-        List<Map<String, Object>> menuList;
-        menuList = parser.setMenuList(getApplicationContext(), "T");
-
-        DatabaseHelper dbh = new DatabaseHelper(getApplicationContext());
         String flag = "T";
-        String tbName = "";
-        Map<String, Object> menu = new HashMap<>();
-        if (flag.equals("T")) {
-            tbName = "menu_teishoku";
-        } else if (flag.equals("C")) {
-            tbName = "menu_curry";
-        } else {
-//                メニューのRecyclerViewにエラーメッセージを表示するため、各要素を代入したListを生成しreturn
-            menu.put("name", "ファイル形式が正しくありません。");
-            menu.put("price", 000);
-            menuList.add(menu);
-//            return menuList;
-        }
-        Cursor cursor;
-        try (SQLiteDatabase db = dbh.getWritableDatabase()) {
-            cursor = db.query(tbName, null, null, null, null, null, null);
-            if (cursor == null) {
-                menuList = parser.setMenuList(getApplicationContext(), flag);
-                ContentValues values = new ContentValues();
-                for (int i = 0; i < menuList.size(); i++) {
-                    values.put("category", flag);
-                    values.put("name", (String)menuList.get(i).get("name"));
-                    values.put("price",(Integer)menuList.get(i).get("price"));
-                    values.put("desc",(String)menuList.get(i).get("desc"));
-                    long id = db.insert(tbName,null,values);
-                    Log.d("TAG","Insert TAG: "+id);
-                }
-            }
-            if (cursor != null) {
-                while (cursor.moveToNext()) {
-                    menu = new HashMap<>();
-                    // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
-                    menu.put("name", cursor.getString(cursor.getColumnIndex("name")));
-                    menu.put("price", cursor.getInt(cursor.getColumnIndex("price")));
-                    menu.put("desc", cursor.getString(cursor.getColumnIndex("desc")));
-                    menuList.add(menu);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("Error", e.toString());
-        }
+        List<Map<String, Object>> menuList = getMenuList(flag);
 
 
 //        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
@@ -181,6 +135,78 @@ public class ScrollListActivity extends AppCompatActivity {
 
 //        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
         helper.attachToRecyclerView(lvMenu);
+    }
+
+    /**
+     * データベースよりメニューリストを生成
+     *
+     * @param flag (String型、メニュー種別を決定)
+     * @return menuList (List型、メニューリストを呼び出し元へ返す)
+     */
+    private List<Map<String, Object>> getMenuList(String flag) {
+//        メニューデータ格納先のList、メニューデータの各要素の格納先Mapの各インスタンスを定義
+        List<Map<String, Object>> menuList = new ArrayList<>();
+        Map<String, Object> menu = new HashMap<>();
+//        テーブル名格納用String変数を定義し、引数「flag」の文字に応じて文字列を代入
+//        所定の文字列を取得できなかった場合に備え、エラーメッセージの返却も定義
+        String tbName = "";
+        if (flag.equals("T")) {
+            tbName = "menu_teishoku";
+        } else if (flag.equals("C")) {
+            tbName = "menu_curry";
+        } else {
+//        メニューのRecyclerViewにエラーメッセージを表示するため、各要素を代入したListを生成しreturn
+            menu.put("name", "ファイル形式が正しくありません。");
+            menu.put("price", 000);
+            menuList.add(menu);
+            return menuList;
+        }
+//        DatabaseHelperインスタンス、Cursorインスタンスを生成
+        DatabaseHelper dbh = new DatabaseHelper(getApplicationContext());
+        Cursor cursor;
+//        データベースへの接続を開始
+        try (SQLiteDatabase db = dbh.getWritableDatabase()) {
+//            データベースよりtbNameに格納したテーブル名と等しいテーブルを探し出し、全データをCursorインスタンスへ格納
+            cursor = db.query(tbName, null, null, null, null, null, null);
+//            Cursorインスタンスがnullでないことを確認し、以下の処理を実施
+//                Cursorインスタンスの内部テーブルがなくなるまで、以下の処理を実施
+            if (cursor != null) {
+                do {
+                    cursor.moveToFirst();
+//                    Cursorインスタンスの要素数が0 (テーブル作成直後) の場合、以下の処理を実施
+                    if (cursor.getCount() == 0) {
+//                        List型メニューリストをassetsディレクトリ内のCSVファイルよりロードの上生成
+                        menuList = new CSVReader().setMenuList(getApplicationContext(), flag);
+//                        ContentValuesインスタンスを生成し、テーブルに格納する要素をメニューリストより個別にput
+//                        メニューリストのサイズ分だけ繰り返し行う
+                        ContentValues values = new ContentValues();
+                        for (int i = 0; i < menuList.size(); i++) {
+                            values.put("name", (String) menuList.get(i).get("name"));
+                            values.put("price", (Integer) menuList.get(i).get("price"));
+                            values.put("desc", (String) menuList.get(i).get("desc"));
+                            long id = db.insert(tbName, null, values);
+//                            Log.d("TAG", "Insert TAG: " + id);
+                        }
+                        cursor.moveToFirst();
+                        cursor = db.query(tbName, null, null, null, null, null, null);
+                    }
+//                    Cursorインスタンスの要素数が0でない場合は、以下の処理を実施
+                    menu = new HashMap<>();
+                    // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
+                    menu.put("_id", cursor.getInt(cursor.getColumnIndex("_id")));
+                    menu.put("name", cursor.getString(cursor.getColumnIndex("name")));
+                    menu.put("price", cursor.getInt(cursor.getColumnIndex("price")));
+                    menu.put("desc", cursor.getString(cursor.getColumnIndex("desc")));
+                    menuList.add(menu);
+                }while (cursor.moveToNext());
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("TAG", "DB Error: " + e.toString());
+        }
+//        生成したメニューリストを呼び出し元へreturn
+        return menuList;
     }
 
     /**
