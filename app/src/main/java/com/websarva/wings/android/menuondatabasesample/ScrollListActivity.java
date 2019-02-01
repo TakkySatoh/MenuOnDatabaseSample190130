@@ -2,6 +2,9 @@ package com.websarva.wings.android.menuondatabasesample;
 
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -15,6 +18,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.support.v7.widget.helper.ItemTouchHelper.Callback;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,9 +64,57 @@ public class ScrollListActivity extends AppCompatActivity {
         lvMenu.setLayoutManager(layout);
 
 //        定食メニューのリストデータを生成
-//        List<Map<String, Object>> menuList = createTeishokuList();
+//        CSVファイルに格納されているデータを読み出し(CSVReaderクラスに手順記述)、メニュー種別(引数に設定)に沿って、Listに格納
         CSVReader parser = new CSVReader();
-        List<Map<String, Object>> menuList = parser.setMenuList(getApplicationContext(),"T");
+        List<Map<String, Object>> menuList;
+        menuList = parser.setMenuList(getApplicationContext(), "T");
+
+        DatabaseHelper dbh = new DatabaseHelper(getApplicationContext());
+        String flag = "T";
+        String tbName = "";
+        Map<String, Object> menu = new HashMap<>();
+        if (flag.equals("T")) {
+            tbName = "menu_teishoku";
+        } else if (flag.equals("C")) {
+            tbName = "menu_curry";
+        } else {
+//                メニューのRecyclerViewにエラーメッセージを表示するため、各要素を代入したListを生成しreturn
+            menu.put("name", "ファイル形式が正しくありません。");
+            menu.put("price", 000);
+            menuList.add(menu);
+//            return menuList;
+        }
+        Cursor cursor;
+        try (SQLiteDatabase db = dbh.getWritableDatabase()) {
+            cursor = db.query(tbName, null, null, null, null, null, null);
+            if (cursor == null) {
+                menuList = parser.setMenuList(getApplicationContext(), flag);
+                ContentValues values = new ContentValues();
+                for (int i = 0; i < menuList.size(); i++) {
+                    values.put("category", flag);
+                    values.put("name", (String)menuList.get(i).get("name"));
+                    values.put("price",(Integer)menuList.get(i).get("price"));
+                    values.put("desc",(String)menuList.get(i).get("desc"));
+                    long id = db.insert(tbName,null,values);
+                    Log.d("TAG","Insert TAG: "+id);
+                }
+            }
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    menu = new HashMap<>();
+                    // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
+                    menu.put("name", cursor.getString(cursor.getColumnIndex("name")));
+                    menu.put("price", cursor.getInt(cursor.getColumnIndex("price")));
+                    menu.put("desc", cursor.getString(cursor.getColumnIndex("desc")));
+                    menuList.add(menu);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("Error", e.toString());
+        }
+
+
 //        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
 //        メニューリスト生成用アダプタは内部クラスとして別途定義
         final RecyclerListAdapter adapter = new RecyclerListAdapter(menuList);
@@ -77,14 +129,14 @@ public class ScrollListActivity extends AppCompatActivity {
         ItemTouchHelper helper = new ItemTouchHelper(new Callback() {
 //          Callbackの抽象メソッド3種をオーバーライド
 
-//          これより以下のメソッドの稼働条件を設定
+            //          これより以下のメソッドの稼働条件を設定
             @Override
             public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
 //                稼働条件 … ViewHolderのインスタンスが上または下方向にドラッグされた場合
                 return makeMovementFlags(ItemTouchHelper.UP | DOWN, 0);
             }
 
-//            ViewHolderがドラッグされた場合の動作
+            //            ViewHolderがドラッグされた場合の動作
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
 //                ViewHolderの要素(Map型インスタンス)をListより取り出し、その要素を削除
@@ -98,7 +150,7 @@ public class ScrollListActivity extends AppCompatActivity {
                 return true;
             }
 
-//            ドラッグされている最中のViewHolderの挙動
+            //            ドラッグされている最中のViewHolderの挙動
             @Override
             public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
                 super.onSelectedChanged(viewHolder, actionState);
@@ -109,7 +161,7 @@ public class ScrollListActivity extends AppCompatActivity {
                 }
             }
 
-//            ドロップされた直後のViewHolderの挙動
+            //            ドロップされた直後のViewHolderの挙動
             @Override
             public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
 //                オーバーライド元のメソッドを呼び出し、"ViewHolderがnullとなった時"の処理を実施
@@ -119,7 +171,7 @@ public class ScrollListActivity extends AppCompatActivity {
             }
 
 
-//            ViewHolderがスワイプされた場合の動作
+            //            ViewHolderがスワイプされた場合の動作
 //            (※今回は動作なしのため、未記述)
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
@@ -129,76 +181,6 @@ public class ScrollListActivity extends AppCompatActivity {
 
 //        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
         helper.attachToRecyclerView(lvMenu);
-    }
-
-    /**
-     * リストビューに表示させる定食系メニューのリストを生成
-     *
-     * @return 定食系メニューのリスト
-     */
-    @NonNull
-    private List<Map<String, Object>> createTeishokuList() {
-        // SimpleAdapterで使用するListオブジェクトを用意
-        List<Map<String, Object>> menuList = new ArrayList<>();
-        // 各定食メニューのデータを格納するMapオブジェクトを用意
-        Map<String, Object> menu = new HashMap<>();
-        // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
-        menu.put("name", "から揚げ定食");
-        menu.put("price", 800);
-        menu.put("desc", "若鳥のから揚げにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "ハンバーグ定食");
-        menu.put("price", 850);
-        menu.put("desc", "手ごねハンバーグにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "生姜焼き定食");
-        menu.put("price", 850);
-        menu.put("desc", "すりおろし生姜を使った生姜焼きにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "ステーキ定食");
-        menu.put("price", 1000);
-        menu.put("desc", "国産牛のステーキにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "野菜炒め定食");
-        menu.put("price", 750);
-        menu.put("desc", "季節の野菜炒めにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "とんかつ定食");
-        menu.put("price", 900);
-        menu.put("desc", "ロースとんかつにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "メンチカツ定食");
-        menu.put("price", 850);
-        menu.put("desc", "手ごねミンチカツにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "チキンカツ定食");
-        menu.put("price", 900);
-        menu.put("desc", "ボリュームたっぷりチキンカツにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "コロッケ定食");
-        menu.put("price", 850);
-        menu.put("desc", "北海道ポテトコロッケにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "焼き魚定食");
-        menu.put("price", 900);
-        menu.put("desc", "鰆の塩焼きにサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        menu = new HashMap<>();
-        menu.put("name", "焼肉定食");
-        menu.put("price", 950);
-        menu.put("desc", "特性たれの焼肉にサラダ、ご飯とお味噌汁が付きます。");
-        menuList.add(menu);
-        // 作成したmenuListを呼び出し元へreturn
-        return menuList;
     }
 
     /**
@@ -280,7 +262,8 @@ public class ScrollListActivity extends AppCompatActivity {
 //            取得したデータに格納されている項目中、"name"タグの付与されたString文字列、"price"タグの付与されたint型数値を抽出
 //            int型数値はString型文字列へ変換する (画面表示のため)
             String menuName = (String) item.get("name");
-            String menuPriceStr = (String) item.get("price");
+            int menuPrice = (Integer) item.get("price");
+            String menuPriceStr = String.format("%,3d", menuPrice);
 //            ビューホルダに対し、上記文字列を各表示先画面部品へ表示する設定を実施
             holder._tvMenuName.setText(menuName);
             holder._tvMenuPrice.setText(menuPriceStr);

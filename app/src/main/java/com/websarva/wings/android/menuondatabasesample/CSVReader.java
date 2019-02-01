@@ -56,7 +56,7 @@ public class CSVReader {
                     menu = new HashMap<>();
                     // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
                     menu.put("name", array[2]);
-                    menu.put("price", array[3]);
+                    menu.put("price", Integer.parseInt(array[3]));
                     menu.put("desc", array[4]);
                     menuList.add(menu);
                 }

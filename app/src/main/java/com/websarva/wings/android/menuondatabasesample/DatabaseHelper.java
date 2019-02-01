@@ -4,6 +4,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.List;
+import java.util.Map;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
@@ -21,11 +24,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-//        テーブル作成用SQL文字列の作成
+//        テーブル作成用SQL文字列の作成 (定食メニューについて)
         StringBuilder sb = new StringBuilder();
         sb.append("create table menu_teishoku (");
         sb.append("_id integer primary key,");
-        sb.append("category text,");
+        sb.append("category text primary key,");
         sb.append("name text,");
         sb.append("price int,");
         sb.append("desc text");
@@ -33,11 +36,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String sql = sb.toString();
 //        SQLを実行
         db.execSQL(sql);
-//        テーブル作成用SQL文字列の作成
+
+//        テーブル作成用SQL文字列の作成 (カレーメニューについて)
         sb = new StringBuilder();
         sb.append("create table menu_curry (");
         sb.append("_id integer primary key,");
-        sb.append("category text,");
+        sb.append("category text primary key,");
         sb.append("name text,");
         sb.append("price int,");
         sb.append("desc text");
