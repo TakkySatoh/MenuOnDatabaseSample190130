@@ -13,11 +13,13 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.support.v7.widget.helper.ItemTouchHelper.Callback;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +36,7 @@ public class ScrollListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        String flag;
 
 //        Toolbarの画面部品を取得
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -42,6 +45,29 @@ public class ScrollListActivity extends AppCompatActivity {
 //        Toolbarインスタンスをアクションバーに設定
 //        (※事前にstyles.xmlのstyleタグ中「parent」属性を"NoActionBar"に設定しないとエラーが出る)
         setSupportActionBar(toolbar);
+
+        Spinner spinner = (Spinner) toolbar.findViewById(R.id.spMenu);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // 処理
+                String item = parent.getItemAtPosition(position).toString();
+                switch(item) {
+                    case "定食":
+                        flag = "T";
+                        break;
+                    case "カレー":
+                        flag = "C";
+                        break;
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        spinner.setAdapter(ArrayAdapter.createFromResource(this, R.array.menu_list, android.R.layout.simple_spinner_dropdown_item));
 
 //        CollapsingToolbar導入時は、タイトルに装飾を施すため、以下の設定を記述する
 //        CollapsingToolbarLayoutの画面部品を取得
@@ -60,7 +86,7 @@ public class ScrollListActivity extends AppCompatActivity {
 
 //        定食メニューのリストデータを生成
 //        CSVファイルに格納されているデータを読み出し(CSVReaderクラスに手順記述)、メニュー種別(引数に設定)に沿って、Listに格納
-        String flag = "C";
+//        String flag = "T";
         List<Map<String, Object>> menuList = getMenuList(flag);
 
 //        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
@@ -74,7 +100,7 @@ public class ScrollListActivity extends AppCompatActivity {
 
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
-        ItemTouchHelper helper = new ItemTouchHelper(new Callback() {
+        ItemTouchHelper helper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
 //          Callbackの抽象メソッド3種をオーバーライド
 
             //          これより以下のメソッドの稼働条件を設定

@@ -2,5 +2,23 @@
     <string name="app_name">MenuOnDatabaseSample</string>
     <string name="toolbar_title">Recycle!</string>
     <string name="tv_menu_unit">円</string>
+    <string-array name="menu_list">メニュー種類
+        <item>カレー</item>
+        <item>定食</item>
+    </string-array>
+    <string name="menu_list_context_desc">説明を表示</string>
+    <string name="menu_list_context_order">ご注文</string>
+    <string name="menu_list_context_header">操作を選んでください</string>
+    <string name="dialog_title">注文確認</string>
+    <string name="dialog_msg"> を注文します。\nよろしいですか？</string>
+    <string name="dialog_btn_ok">注文</string>
+    <string name="dialog_btn_ng">キャンセル</string>
+    <string name="dialog_btn_nu">問合せ</string>
+    <string name="dialog_ok_toast">ご注文ありがとうございます</string>
+    <string name="dialog_ng_toast">ご注文をキャンセルしました</string>
+    <string name="dialog_nu_toast">お問い合わせ内容をお知らせください</string>
+    <string name="tv_thx_title">注文完了</string>
+    <string name="tv_thx_desc">以下のメニューのご注文を受け付けました。\nご注文ありがとうございます</string>
+    <string name="bt_thx_back">リストに戻る</string>
     <string name="msg_header">ご注文の定食: </string>
 </resources>
