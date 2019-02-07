@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,10 +33,17 @@ import static android.support.v7.widget.helper.ItemTouchHelper.DOWN;
 
 public class ScrollListActivity extends AppCompatActivity {
 
+    private TextView mTvMenuCategory1;
+    private TextView mTvMenuCategory2;
     private List<Map<String, Object>> mMenuList;
-    private RecyclerView mRvMenu;
-    private RecyclerListAdapter mAdapter;
-    private ItemTouchHelper mHelper;
+    private List<Map<String, Object>> mTeishokuMenuList;
+    private List<Map<String, Object>> mCurryMenuList;
+    private RecyclerView mRvTeishokuMenu;
+    private RecyclerView mRvCurryMenu;
+    private RecyclerListAdapter mTeishokuAdapter;
+    private RecyclerListAdapter mCurryAdapter;
+    private ItemTouchHelper mTeishokuHelper;
+    private ItemTouchHelper mCurryHelper;
     private String mFlag;
 
     @Override
@@ -59,11 +68,64 @@ public class ScrollListActivity extends AppCompatActivity {
         toolbarLayout.setExpandedTitleColor(Color.WHITE);
         toolbarLayout.setCollapsedTitleTextColor(Color.LTGRAY);
 
+        mTvMenuCategory1 = findViewById(R.id.tvMenuCategory1);
+        mTvMenuCategory2 = findViewById(R.id.tvMenuCategory2);
+
 //        RecyclerViewの画面部品をインスタンス化
-        mRvMenu = findViewById(R.id.rvMenu);
-//        LinearLayoutManagerのインスタンスを生成し、RecyclerViewインスタンスのレイアウトをLinearLayoutへ設定
+        mRvTeishokuMenu = findViewById(R.id.rvTeishokuMenu);
+        mRvCurryMenu = findViewById(R.id.rvCurryMenu);
+//        LinearLayoutManagerのインスタンスを各RecyclerViewごとに生成
+//        RecyclerViewインスタンスのレイアウトをLinearLayoutへ設定
         LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
-        mRvMenu.setLayoutManager(layout);
+        mRvTeishokuMenu.setLayoutManager(layout);
+        layout = new LinearLayoutManager(ScrollListActivity.this);
+        mRvCurryMenu.setLayoutManager(layout);
+
+        String[] items = getResources().getStringArray(R.array.menu_list);
+//        switch(item) {
+//            case "定食":
+//                mFlag = "T";
+//                mTeishokuMenuList = getMenuList(mFlag);
+//                break;
+//            case "カレー":
+//                mFlag = "C";
+//                mCurryMenuList = getMenuList(mFlag);
+//                break;
+//        }
+        mTvMenuCategory1.setText(items[0]);
+//        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
+//        メニューリスト生成用アダプタは内部クラスとして別途定義
+        mFlag = "T";
+        mTeishokuMenuList = getMenuList(mFlag);
+        mTeishokuAdapter = new RecyclerListAdapter(mTeishokuMenuList);
+        mRvTeishokuMenu.setAdapter(mTeishokuAdapter);
+//        リストに対し区切り線を設定
+//        LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
+        DividerItemDecoration decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
+        mRvTeishokuMenu.addItemDecoration(decoration);
+//        ItemTouchHelperインスタンスを新規生成
+//        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
+        mTeishokuHelper = new ItemTouchHelper(new CallbackOnItemTouched(mTeishokuAdapter));
+//        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
+        mTeishokuHelper.attachToRecyclerView(mRvTeishokuMenu);
+
+        mTvMenuCategory2.setText(items[1]);
+//        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
+//        メニューリスト生成用アダプタは内部クラスとして別途定義
+        mFlag = "C";
+        mCurryMenuList = getMenuList(mFlag);
+        mCurryAdapter = new RecyclerListAdapter(mCurryMenuList);
+        mRvCurryMenu.setAdapter(mCurryAdapter);
+//        リストに対し区切り線を設定
+//        LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
+        decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
+        mRvCurryMenu.addItemDecoration(decoration);
+//        ItemTouchHelperインスタンスを新規生成
+//        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
+        mCurryHelper = new ItemTouchHelper(new CallbackOnItemTouched(mCurryAdapter));
+//        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
+        mCurryHelper.attachToRecyclerView(mRvCurryMenu);
+
 
         Spinner spinner = (Spinner) toolbar.findViewById(R.id.spMenu);
         spinner.setAdapter(ArrayAdapter.createFromResource(this, R.array.menu_list, android.R.layout.simple_spinner_dropdown_item));
@@ -72,29 +134,29 @@ public class ScrollListActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // 処理
                 String item = parent.getItemAtPosition(position).toString();
-                switch(item) {
+                final NestedScrollView nsvMenu = (NestedScrollView) findViewById(R.id.nsvMenu);
+                switch (item) {
                     case "定食":
-                        mFlag = "T";
-                        setMenuList(mFlag);
+                        nsvMenu.post(new Runnable() {
+                            public void run() {
+                                nsvMenu.fullScroll(nsvMenu.FOCUS_UP);
+                            }
+                        });
                         break;
+//                mFlag = "T";
+//                mTeishokuMenuList = getMenuList(mFlag);
+//                break;
                     case "カレー":
-                        mFlag = "C";
-                        setMenuList(mFlag);
+                        nsvMenu.post(new Runnable() {
+                            public void run() {
+                                nsvMenu.scrollTo((int)mTvMenuCategory2.getX(), (int)mTvMenuCategory2.getY());
+                            }
+                        });
+//                mFlag = "C";
+//                mCurryMenuList = getMenuList(mFlag);
                         break;
                 }
-//        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
-//        メニューリスト生成用アダプタは内部クラスとして別途定義
-                mAdapter = new RecyclerListAdapter(mMenuList);
-                mRvMenu.setAdapter(mAdapter);
-//        リストに対し区切り線を設定
-                LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
-                DividerItemDecoration decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
-                mRvMenu.addItemDecoration(decoration);
-//        ItemTouchHelperインスタンスを新規生成
-//        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
-                mHelper = new ItemTouchHelper(new CallbackOnItemTouched(mAdapter));
-//        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
-                mHelper.attachToRecyclerView(mRvMenu);
+
             }
 
             @Override
@@ -110,7 +172,7 @@ public class ScrollListActivity extends AppCompatActivity {
      * @param flag (String型、メニュー種別を決定)
      * @return mMenuList (List型、メニューリストを呼び出し元へ返す)
      */
-    private boolean setMenuList(String flag) {
+    private List<Map<String, Object>> getMenuList(String flag) {
 //        メニューデータ格納先のList、メニューデータの各要素の格納先Mapの各インスタンスを定義
         List<Map<String, Object>> menuList = new ArrayList<>();
         Map<String, Object> menu = new HashMap<>();
@@ -130,8 +192,8 @@ public class ScrollListActivity extends AppCompatActivity {
                 menu.put("name", "ファイル形式が正しくありません。");
                 menu.put("price", 0);
                 menuList.add(menu);
-                mMenuList = menuList;
-                return false;
+//                mMenuList = menuList;
+                return menuList;
         }
 //        DatabaseHelperインスタンス、Cursorインスタンスを生成
         DatabaseHelper dbh = new DatabaseHelper(getApplicationContext());
@@ -160,10 +222,10 @@ public class ScrollListActivity extends AppCompatActivity {
             Log.d("TAG", "DB Error: " + e.toString());
         }
 //        生成したメニューリストをフィールド変数へ格納
-        this.mMenuList = menuList;
+//        this.mMenuList = menuList;
 
 //        メニューの正常生成通知を呼び出し元へreturn
-        return true;
+        return menuList;
     }
 
     /**
