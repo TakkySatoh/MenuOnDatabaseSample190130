@@ -3,8 +3,8 @@
     <string name="toolbar_title">Recycle!</string>
     <string name="tv_menu_unit">円</string>
     <string-array name="menu_list">メニュー種類
-        <item>カレー</item>
         <item>定食</item>
+        <item>カレー</item>
     </string-array>
     <string name="menu_list_context_desc">説明を表示</string>
     <string name="menu_list_context_order">ご注文</string>
