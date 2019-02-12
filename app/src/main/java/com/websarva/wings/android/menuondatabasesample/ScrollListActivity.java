@@ -15,10 +15,12 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -228,6 +230,10 @@ public class ScrollListActivity extends AppCompatActivity {
         return menuList;
     }
 
+    private void startDragOnHandleTouched (RecyclerListViewHolder viewHolder){
+        mTeishokuHelper.startDrag(viewHolder);
+    }
+
     /**
      * RecyclerViewの各項目を表示するViewを保持するクラス (ビューホルダ)
      */
@@ -235,6 +241,7 @@ public class ScrollListActivity extends AppCompatActivity {
         //        リスト1行あたりのデータ表示用画面部品をフィールドで宣言
         public TextView _tvMenuName;
         public TextView _tvMenuPrice;
+        public ImageView _icHandle;
 
         /**
          * コンストラクタ
@@ -247,6 +254,7 @@ public class ScrollListActivity extends AppCompatActivity {
 //            親クラスのビューより、フィールド宣言実施のクラスに相当する画面部品を取得し、インスタンス化
             _tvMenuName = itemView.findViewById(R.id.tvMenuName);
             _tvMenuPrice = itemView.findViewById(R.id.tvMenuPrice);
+            _icHandle = itemView.findViewById(R.id.icHandle);
         }
     }
 
@@ -290,6 +298,17 @@ public class ScrollListActivity extends AppCompatActivity {
                     String menuName = tvMenuName.getText().toString();
                     String msg = getString(R.string.msg_header) + menuName;
                     Toast.makeText(ScrollListActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+//            試験実装1: ビューホルダ内のアイコンをタップするとリスト入れ替え発生
+            final RecyclerListViewHolder holder = new RecyclerListViewHolder(view);
+            holder._icHandle.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                        mTeishokuHelper.startDrag(holder);
+                    }
+                    return false;
                 }
             });
 //            生成したView型インスタンスを、RecyclerView.ViewHolderの子クラスのインスタンスへ渡す
