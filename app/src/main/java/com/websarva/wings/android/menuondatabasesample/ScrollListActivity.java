@@ -103,8 +103,8 @@ public class ScrollListActivity extends AppCompatActivity {
         mRvTeishokuMenu.setAdapter(mTeishokuAdapter);
 //        リストに対し区切り線を設定
 //        LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
-        DividerItemDecoration decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
-        mRvTeishokuMenu.addItemDecoration(decoration);
+//        DividerItemDecoration decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
+//        mRvTeishokuMenu.addItemDecoration(decoration);
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
         mTeishokuHelper = new ItemTouchHelper(new CallbackOnItemTouched(mTeishokuAdapter));
@@ -120,8 +120,8 @@ public class ScrollListActivity extends AppCompatActivity {
         mRvCurryMenu.setAdapter(mCurryAdapter);
 //        リストに対し区切り線を設定
 //        LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
-        decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
-        mRvCurryMenu.addItemDecoration(decoration);
+//        decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
+//        mRvCurryMenu.addItemDecoration(decoration);
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
         mCurryHelper = new ItemTouchHelper(new CallbackOnItemTouched(mCurryAdapter));
