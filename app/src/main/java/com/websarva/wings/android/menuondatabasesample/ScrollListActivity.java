@@ -3,7 +3,6 @@ package com.websarva.wings.android.menuondatabasesample;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
@@ -14,24 +13,16 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.support.v7.widget.helper.ItemTouchHelper.DOWN;
 
 public class ScrollListActivity extends AppCompatActivity {
 
@@ -70,18 +61,24 @@ public class ScrollListActivity extends AppCompatActivity {
         toolbarLayout.setExpandedTitleColor(Color.WHITE);
         toolbarLayout.setCollapsedTitleTextColor(Color.LTGRAY);
 
+//        RecyclerViewの画面部品をインスタンス化
         mTvMenuCategory1 = findViewById(R.id.tvMenuCategory1);
         mTvMenuCategory2 = findViewById(R.id.tvMenuCategory2);
-
-//        RecyclerViewの画面部品をインスタンス化
         mRvTeishokuMenu = findViewById(R.id.rvTeishokuMenu);
         mRvCurryMenu = findViewById(R.id.rvCurryMenu);
+
 //        LinearLayoutManagerのインスタンスを各RecyclerViewごとに生成
 //        RecyclerViewインスタンスのレイアウトをLinearLayoutへ設定
         LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
         mRvTeishokuMenu.setLayoutManager(layout);
+//        リストに対し区切り線を設定
+        DividerItemDecoration decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
+        mRvTeishokuMenu.addItemDecoration(decoration);
         layout = new LinearLayoutManager(ScrollListActivity.this);
         mRvCurryMenu.setLayoutManager(layout);
+//        リストに対し区切り線を設定
+        decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
+        mRvCurryMenu.addItemDecoration(decoration);
 
         String[] items = getResources().getStringArray(R.array.menu_list);
 //        switch(item) {
@@ -99,15 +96,11 @@ public class ScrollListActivity extends AppCompatActivity {
 //        メニューリスト生成用アダプタは内部クラスとして別途定義
         mFlag = "T";
         mTeishokuMenuList = getMenuList(mFlag);
-        mTeishokuAdapter = new RecyclerListAdapter(mTeishokuMenuList);
+        mTeishokuAdapter = new RecyclerListAdapter(this, mTeishokuMenuList);
         mRvTeishokuMenu.setAdapter(mTeishokuAdapter);
-//        リストに対し区切り線を設定
-//        LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
-//        DividerItemDecoration decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
-//        mRvTeishokuMenu.addItemDecoration(decoration);
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
-        mTeishokuHelper = new ItemTouchHelper(new CallbackOnItemTouched(mTeishokuAdapter));
+        mTeishokuHelper = new ItemTouchHelper(new ItemTouchHelperCallback(mTeishokuAdapter));
 //        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
         mTeishokuHelper.attachToRecyclerView(mRvTeishokuMenu);
 
@@ -116,15 +109,11 @@ public class ScrollListActivity extends AppCompatActivity {
 //        メニューリスト生成用アダプタは内部クラスとして別途定義
         mFlag = "C";
         mCurryMenuList = getMenuList(mFlag);
-        mCurryAdapter = new RecyclerListAdapter(mCurryMenuList);
+        mCurryAdapter = new RecyclerListAdapter(this, mCurryMenuList);
         mRvCurryMenu.setAdapter(mCurryAdapter);
-//        リストに対し区切り線を設定
-//        LinearLayoutManager layout = new LinearLayoutManager(ScrollListActivity.this);
-//        decoration = new DividerItemDecoration(ScrollListActivity.this, layout.getOrientation());
-//        mRvCurryMenu.addItemDecoration(decoration);
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
-        mCurryHelper = new ItemTouchHelper(new CallbackOnItemTouched(mCurryAdapter));
+        mCurryHelper = new ItemTouchHelper(new ItemTouchHelperCallback(mCurryAdapter));
 //        ItemTouchHelper(のインスタンス)をRecyclerViewインスタンスへ追加
         mCurryHelper.attachToRecyclerView(mRvCurryMenu);
 
@@ -151,7 +140,7 @@ public class ScrollListActivity extends AppCompatActivity {
                     case "カレー":
                         nsvMenu.post(new Runnable() {
                             public void run() {
-                                nsvMenu.scrollTo((int)mTvMenuCategory2.getX(), (int)mTvMenuCategory2.getY());
+                                nsvMenu.scrollTo((int) mTvMenuCategory2.getX(), (int) mTvMenuCategory2.getY());
                             }
                         });
 //                mFlag = "C";
@@ -181,12 +170,15 @@ public class ScrollListActivity extends AppCompatActivity {
 //        テーブル名格納用String変数を定義し、引数「flag」の文字に応じて文字列を代入
 //        所定の文字列を取得できなかった場合に備え、エラーメッセージの返却も定義
         String tbName;
+        String category;
         switch (flag) {
             case "T":
                 tbName = "menu_teishoku";
+                category = "T";
                 break;
             case "C":
                 tbName = "menu_curry";
+                category = "C";
                 break;
             default:
 //        メニューのRecyclerViewにエラーメッセージを表示するため、各要素を代入したListを生成しフィールド変数へ格納
@@ -211,6 +203,7 @@ public class ScrollListActivity extends AppCompatActivity {
 //                    Cursorインスタンスの要素数が0でない場合は、以下の処理を実施
                     menu = new HashMap<>();
                     // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
+                    menu.put("category", category);
                     menu.put("_id", cursor.getInt(cursor.getColumnIndex("_id")));
                     menu.put("name", cursor.getString(cursor.getColumnIndex("name")));
                     menu.put("price", cursor.getInt(cursor.getColumnIndex("price")));
@@ -230,177 +223,23 @@ public class ScrollListActivity extends AppCompatActivity {
         return menuList;
     }
 
-    private void startDragOnHandleTouched (RecyclerListViewHolder viewHolder){
-        mTeishokuHelper.startDrag(viewHolder);
-    }
-
     /**
-     * RecyclerViewの各項目を表示するViewを保持するクラス (ビューホルダ)
+     * 子ビュー右端のハンドルアイコンタップ時の挙動を定義
+     *
+     * @param viewHolder 子ビュー本体
+     * @param flag メニュー種類
      */
-    private class RecyclerListViewHolder extends RecyclerView.ViewHolder {
-        //        リスト1行あたりのデータ表示用画面部品をフィールドで宣言
-        public TextView _tvMenuName;
-        public TextView _tvMenuPrice;
-        public ImageView _icHandle;
-
-        /**
-         * コンストラクタ
-         *
-         * @param itemView リスト1行当たりの画面部品
-         */
-        public RecyclerListViewHolder(View itemView) {
-//            親クラスのコンストラクタを呼び出し
-            super(itemView);
-//            親クラスのビューより、フィールド宣言実施のクラスに相当する画面部品を取得し、インスタンス化
-            _tvMenuName = itemView.findViewById(R.id.tvMenuName);
-            _tvMenuPrice = itemView.findViewById(R.id.tvMenuPrice);
-            _icHandle = itemView.findViewById(R.id.icHandle);
+    public void startDragOnHandleTouched(RecyclerView.ViewHolder viewHolder, String flag) {
+        switch (flag) {
+//            ItemTouchHelper#startDrag()を呼び出し
+//            flagの内容により、startDrag()を呼び出すItemTouchHelperのインスタンスを変える
+            case "T":
+                mTeishokuHelper.startDrag(viewHolder);
+                break;
+            case "C":
+                mCurryHelper.startDrag(viewHolder);
+                break;
         }
     }
 
-    /**
-     * RecyclerViewへのデータ登録用アダプタクラス
-     */
-    private class RecyclerListAdapter extends RecyclerView.Adapter<RecyclerListViewHolder> {
-
-        //        リストデータのインスタンスをフィールドで宣言
-        private List<Map<String, Object>> _menuList;
-
-        /**
-         * コンストラクタ
-         *
-         * @param listData リストデータ
-         */
-        public RecyclerListAdapter(List<Map<String, Object>> listData) {
-            _menuList = listData;
-        }
-
-        /**
-         * リストの一項目ごとのレイアウトを定義するメソッド
-         *
-         * @return RecyclerListViewHolderインスタンス (RecyclerView.ViewHolderの子クラス)
-         */
-        @Override
-        public RecyclerListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-//            レイアウトインフレータをアクティビティより取得し、リストの各項目の画面構成を定義(インフレート)
-//            定義した画面構成は、View型インスタンスとして生成する
-            LayoutInflater inflater = LayoutInflater.from(ScrollListActivity.this);
-            View view = inflater.inflate(R.layout.row, parent, false);
-//            定義した画面構成のViewインスタンスに対し、リスナを設定する
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-//                    タップされたLinearLayout内にあるRecyclerViewに対し、タップされた位置にあるメニュー名を表示するTextViewを取得
-//                    (※必ず、onClick()メソッドの引数として定義したViewインスタンスに対してfindViewById()を行うこと！)
-                    TextView tvMenuName = v.findViewById(R.id.tvMenuName);
-//                    取得したTextViewよりメニュー名の文字列を抽出し、文字列XMLファイル中の定型文と結合
-//                    結合した文字列をToast形式でポップアップ表示する
-                    String menuName = tvMenuName.getText().toString();
-                    String msg = getString(R.string.msg_header) + menuName;
-                    Toast.makeText(ScrollListActivity.this, msg, Toast.LENGTH_SHORT).show();
-                }
-            });
-//            試験実装1: ビューホルダ内のアイコンをタップするとリスト入れ替え発生
-            final RecyclerListViewHolder holder = new RecyclerListViewHolder(view);
-            holder._icHandle.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                        mTeishokuHelper.startDrag(holder);
-                    }
-                    return false;
-                }
-            });
-//            生成したView型インスタンスを、RecyclerView.ViewHolderの子クラスのインスタンスへ渡す
-//            (RecyclerView.ViewHolderの子クラス … RecyclerViewの各項目を表示するViewを保持するクラス)
-            return new RecyclerListViewHolder(view);
-        }
-
-        /**
-         * リストの一項目ごとのデータを取得し、RecyclerView.ViewHolderの子クラスへデータを引き渡すメソッド
-         */
-        @Override
-        public void onBindViewHolder(RecyclerListViewHolder holder, int position) {
-//            リストデータより、一行当たりのデータを取得
-            Map<String, Object> item = _menuList.get(position);
-//            取得したデータに格納されている項目中、"name"タグの付与されたString文字列、"price"タグの付与されたint型数値を抽出
-//            int型数値はString型文字列へ変換する (画面表示のため)
-            String menuName = (String) item.get("name");
-            int menuPrice = (Integer) item.get("price");
-            String menuPriceStr = String.format("%,3d", menuPrice);
-//            ビューホルダに対し、上記文字列を各表示先画面部品へ表示する設定を実施
-            holder._tvMenuName.setText(menuName);
-            holder._tvMenuPrice.setText(menuPriceStr);
-        }
-
-        /**
-         * リストの項目数量をカウントするメソッド
-         *
-         * @return リストデータの項目数 (int型)
-         */
-        @Override
-        public int getItemCount() {
-            return _menuList.size();
-        }
-    }
-
-    private class CallbackOnItemTouched extends ItemTouchHelper.Callback {
-        private RecyclerListAdapter _adapter;
-
-        public CallbackOnItemTouched(RecyclerListAdapter adapter) {
-            _adapter = adapter;
-        }
-//          Callbackの抽象メソッド3種をオーバーライド
-
-        //          これより以下のメソッドの稼働条件を設定
-        @Override
-        public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-//                稼働条件 … ViewHolderのインスタンスが上または下方向にドラッグされた場合
-            return makeMovementFlags(ItemTouchHelper.UP | DOWN, 0);
-        }
-
-        //            ViewHolderがドラッグされた場合の動作
-        @Override
-        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-//                ViewHolderの要素(Map型インスタンス)をListより取り出し、その要素を削除
-//                削除したインスタンスを一時変数に格納の上、ドロップした箇所に挿入
-            Map<String, Object> menu = _adapter._menuList.remove(viewHolder.getAdapterPosition());
-            _adapter._menuList.add(target.getAdapterPosition(), menu);
-//                ViewHolderの移動内容を通知
-            final int fromPosition = viewHolder.getAdapterPosition();
-//            int fromPosition = viewHolder.getAdapterPosition();
-            final int toPosition = target.getAdapterPosition();
-//            int toPosition = target.getAdapterPosition();
-            _adapter.notifyItemMoved(fromPosition, toPosition);
-            return true;
-        }
-
-        //            ドラッグされている最中のViewHolderの挙動
-        @Override
-        public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-            super.onSelectedChanged(viewHolder, actionState);
-//                ViewHolderがドラッグされた状態 ＝ actionStateの値が「2」の時、以下の処理を実施
-            if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
-//                    ViewHolderが保持するitemView(画面部品)に対し、透過度を「0.5」(半透明)に設定
-                viewHolder.itemView.setAlpha(0.5f);
-            }
-        }
-
-        //            ドロップされた直後のViewHolderの挙動
-        @Override
-        public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-//                オーバーライド元のメソッドを呼び出し、"ViewHolderがnullとなった時"の処理を実施
-            super.clearView(recyclerView, viewHolder);
-//                ViewHolderが保持するitemViewに対し、透過度を「1.0」(不透明)に設定
-            viewHolder.itemView.setAlpha(1.0f);
-        }
-
-
-        //            ViewHolderがスワイプされた場合の動作
-//            (※今回は動作なしのため、未記述)
-        @Override
-        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-
-        }
-    }
 }

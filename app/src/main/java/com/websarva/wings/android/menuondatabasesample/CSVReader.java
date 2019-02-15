@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class CSVReader {
-    List<Map<String,Object>> menuList = new ArrayList<>();
-    Map<String,Object> menu = new HashMap<>();
+    List<Map<String, Object>> menuList = new ArrayList<>();
+    Map<String, Object> menu = new HashMap<>();
     InputStream is;
     InputStreamReader isr;
     BufferedReader br;
@@ -50,14 +50,14 @@ public class CSVReader {
                 array = line.split(",", 0);
 //                メニュー種別判定: 配列要素1の文字列が引数"flag"と一致する場合のみ、以下の処理を実施
 //                if (array[1].equals(flag)) {
-                    // データ数をチェックしたあと、SightseeingSpotのインスタンスを生成し、tempSpotArray配列へ代入
-                    menu = new HashMap<>();
-                    // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
-                    menu.put("category",array[1]);
-                    menu.put("name", array[2]);
-                    menu.put("price", Integer.parseInt(array[3]));
-                    menu.put("desc", array[4]);
-                    menuList.add(menu);
+                // データ数をチェックしたあと、SightseeingSpotのインスタンスを生成し、tempSpotArray配列へ代入
+                menu = new HashMap<>();
+                // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
+                menu.put("category", array[1]);
+                menu.put("name", array[2]);
+                menu.put("price", Integer.parseInt(array[3]));
+                menu.put("desc", array[4]);
+                menuList.add(menu);
 //                }
                 // 次の行を読む
 //                line = br.readLine();
@@ -73,6 +73,6 @@ public class CSVReader {
                 e.printStackTrace();
             }
         }
-    return menuList;
+        return menuList;
     }
 }
