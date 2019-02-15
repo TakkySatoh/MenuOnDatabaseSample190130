@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MenuTeishokuFragment">
+
+    <TextView
+        android:id="@+id/tvMenuCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:background="@android:color/holo_red_light"
+        android:padding="3dp"
+        android:textColor="@android:color/background_light"
+        android:textSize="30sp" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvMenu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:nestedScrollingEnabled="false"
+        android:scrollbars="vertical">
+
+    </android.support.v7.widget.RecyclerView>
+</LinearLayout>

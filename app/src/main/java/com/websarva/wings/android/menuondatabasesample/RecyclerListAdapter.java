@@ -27,8 +27,8 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<RecyclerListAdapte
      *
      * @param listData リストデータ
      */
-    public RecyclerListAdapter(ScrollListActivity scrollListActivity, List<Map<String, Object>> listData) {
-        mActivity = scrollListActivity;
+    public RecyclerListAdapter(ScrollListActivity activity, List<Map<String, Object>> listData) {
+        mActivity = activity;
         _menuList = listData;
     }
 
@@ -107,7 +107,6 @@ public class RecyclerListAdapter extends RecyclerView.Adapter<RecyclerListAdapte
         notifyItemMoved(fromPosition, toPosition);
         return true;
     }
-
 
     /**
      * RecyclerViewの各項目を表示するViewを保持するクラス (ビューホルダ)

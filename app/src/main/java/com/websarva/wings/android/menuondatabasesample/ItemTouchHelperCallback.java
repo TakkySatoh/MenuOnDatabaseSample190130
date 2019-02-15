@@ -30,9 +30,7 @@ class ItemTouchHelperCallback extends ItemTouchHelper.Callback {
     public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
 //                ViewHolderの移動内容を通知
         final int fromPosition = viewHolder.getAdapterPosition();
-//            int fromPosition = viewHolder.getAdapterPosition();
         final int toPosition = target.getAdapterPosition();
-//            int toPosition = target.getAdapterPosition();
 //                ViewHolderの要素(Map型インスタンス)をListより取り出し、その要素を削除
 //                削除したインスタンスを一時変数に格納の上、ドロップした箇所に挿入
         _adapter.onItemMove(fromPosition,toPosition);

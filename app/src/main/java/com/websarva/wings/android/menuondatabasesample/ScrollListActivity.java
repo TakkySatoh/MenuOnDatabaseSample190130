@@ -1,7 +1,5 @@
 package com.websarva.wings.android.menuondatabasesample;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.NestedScrollView;
@@ -12,15 +10,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -95,8 +90,8 @@ public class ScrollListActivity extends AppCompatActivity {
 //        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
 //        メニューリスト生成用アダプタは内部クラスとして別途定義
         mFlag = "T";
-        mTeishokuMenuList = getMenuList(mFlag);
-        mTeishokuAdapter = new RecyclerListAdapter(this, mTeishokuMenuList);
+        mTeishokuMenuList = MenuListGenerator.getMenuList(mFlag);
+        mTeishokuAdapter = new RecyclerListAdapter(ScrollListActivity.this, mTeishokuMenuList);
         mRvTeishokuMenu.setAdapter(mTeishokuAdapter);
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
@@ -108,8 +103,8 @@ public class ScrollListActivity extends AppCompatActivity {
 //        メニューリスト生成用アダプタのインスタンスを生成し、RecyclerViewへリストを登録
 //        メニューリスト生成用アダプタは内部クラスとして別途定義
         mFlag = "C";
-        mCurryMenuList = getMenuList(mFlag);
-        mCurryAdapter = new RecyclerListAdapter(this, mCurryMenuList);
+        mCurryMenuList = MenuListGenerator.getMenuList(mFlag);
+        mCurryAdapter = new RecyclerListAdapter(ScrollListActivity.this, mCurryMenuList);
         mRvCurryMenu.setAdapter(mCurryAdapter);
 //        ItemTouchHelperインスタンスを新規生成
 //        引数にネストクラス「Callback」のインスタンスを新規生成の上指定
@@ -155,72 +150,6 @@ public class ScrollListActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-    /**
-     * データベースよりメニューリストを生成
-     *
-     * @param flag (String型、メニュー種別を決定)
-     * @return mMenuList (List型、メニューリストを呼び出し元へ返す)
-     */
-    private List<Map<String, Object>> getMenuList(String flag) {
-//        メニューデータ格納先のList、メニューデータの各要素の格納先Mapの各インスタンスを定義
-        List<Map<String, Object>> menuList = new ArrayList<>();
-        Map<String, Object> menu = new HashMap<>();
-//        テーブル名格納用String変数を定義し、引数「flag」の文字に応じて文字列を代入
-//        所定の文字列を取得できなかった場合に備え、エラーメッセージの返却も定義
-        String tbName;
-        String category;
-        switch (flag) {
-            case "T":
-                tbName = "menu_teishoku";
-                category = "T";
-                break;
-            case "C":
-                tbName = "menu_curry";
-                category = "C";
-                break;
-            default:
-//        メニューのRecyclerViewにエラーメッセージを表示するため、各要素を代入したListを生成しフィールド変数へ格納
-//        メニューの生成不可通知を呼び出し元へreturn
-                menu.put("name", "ファイル形式が正しくありません。");
-                menu.put("price", 0);
-                menuList.add(menu);
-//                mMenuList = menuList;
-                return menuList;
-        }
-//        DatabaseHelperインスタンス、Cursorインスタンスを生成
-        DatabaseHelper dbh = new DatabaseHelper(getApplicationContext());
-        Cursor cursor;
-//        データベースへの接続を開始
-        try (SQLiteDatabase db = dbh.getWritableDatabase()) {
-//            データベースよりtbNameに格納したテーブル名と等しいテーブルを探し出し、全データをCursorインスタンスへ格納
-            cursor = db.query(tbName, null, null, null, null, null, null);
-//            Cursorインスタンスがnullでないことを確認し、以下の処理を実施
-            if (cursor != null) {
-//            Cursorインスタンスの内部テーブルがなくなるまで、以下の処理を実施
-                while (cursor.moveToNext()) {
-//                    Cursorインスタンスの要素数が0でない場合は、以下の処理を実施
-                    menu = new HashMap<>();
-                    // 各定食メニューをHashMapに登録し、その後menuListの各要素へ登録
-                    menu.put("category", category);
-                    menu.put("_id", cursor.getInt(cursor.getColumnIndex("_id")));
-                    menu.put("name", cursor.getString(cursor.getColumnIndex("name")));
-                    menu.put("price", cursor.getInt(cursor.getColumnIndex("price")));
-                    menu.put("desc", cursor.getString(cursor.getColumnIndex("desc")));
-                    menuList.add(menu);
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("TAG", "DB Error: " + e.toString());
-        }
-//        生成したメニューリストをフィールド変数へ格納
-//        this.mMenuList = menuList;
-
-//        メニューの正常生成通知を呼び出し元へreturn
-        return menuList;
     }
 
     /**

@@ -2,15 +2,11 @@ package com.websarva.wings.android.menuondatabasesample;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +46,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 //        作成したテーブルへCSVファイルよりメニューデータをインポート
 //        Assetsディレクトリ上のCSVファイルへアクセスし、データをListへ格納
-            List<Map<String, Object>> menuList = new CSVReader().setMenuList(this.context, CSV_FILE_NAME);
+            List<Map<String, Object>> menuList = new MenuListGenerator().setMenuList(this.context, CSV_FILE_NAME);
             Map<String, Object> menu;
 //            格納したListすべてに対し、以下の処理を実施
             for (int i = 0; i < menuList.size(); i++) {
